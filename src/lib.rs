@@ -293,9 +293,13 @@ impl surf::middleware::Middleware for BearerToken {
 
 #[cfg(feature = "async")]
 fn async_client(token: &str, base_url: &str) -> surf::Client {
-    let mut async_client = surf::client();
-    async_client.set_base_url(surf::Url::parse(base_url).expect("Static string should parse"));
-    async_client.with(BearerToken::new(token))
+    use std::convert::TryInto;
+    
+    let client: surf::Client = surf::Config::new()
+        .set_base_url(surf::Url::parse(base_url).expect("Could not parse base url"))
+        .try_into()
+        .expect("Could not create client");
+    client.with(BearerToken::new(token))
 }
 
 #[cfg(feature = "sync")]
